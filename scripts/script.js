@@ -31,6 +31,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     gameBoard.appendChild(table);
+
+    if (window.DeviceOrientationEvent) {
+        window.addEventListener('orientationchange', function () {
+            const orientation = window.orientation;
+            if (orientation === 90 || orientation === -90) {
+                // La pantalla está en modo paisaje
+                // Ejemplo de lógica para modo paisaje
+                alert('La pantalla está en modo paisaje');
+            } else {
+                // La pantalla está en modo retrato
+                // Ejemplo de lógica para modo retrato
+                alert('La pantalla está en modo retrato');
+            }
+        });
+    }
 });
 
 function createRandomImageSequence(rows, cols, maxImages) {
