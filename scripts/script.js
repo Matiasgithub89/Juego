@@ -32,18 +32,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
     gameBoard.appendChild(table);
 
+    // Agregar estilos condicionales para ajustar el tamaño de las imágenes en modo retrato
+    const adjustImageSizeForPortrait = function () {
+        if (window.innerWidth < window.innerHeight) {
+            const images = document.querySelectorAll("img.img-thumbnail");
+            images.forEach(function (image) {
+                image.style.maxWidth = "25%"; // Ajusta el tamaño deseado
+            });
+        } else {
+            // Restablecer los estilos cuando la orientación cambia a paisaje
+            const images = document.querySelectorAll("img.img-thumbnail");
+            images.forEach(function (image) {
+                image.style.maxWidth = "100%";
+            });
+        }
+    };
+
+    adjustImageSizeForPortrait(); // Aplicar los estilos inicialmente
+
     if (window.DeviceOrientationEvent) {
         window.addEventListener('orientationchange', function () {
-            const orientation = window.orientation;
-            if (orientation === 90 || orientation === -90) {
-                // La pantalla está en modo paisaje
-                // Ejemplo de lógica para modo paisaje
-                alert('La pantalla está en modo paisaje');
-            } else {
-                // La pantalla está en modo retrato
-                // Ejemplo de lógica para modo retrato
-                alert('La pantalla está en modo retrato');
-            }
+            adjustImageSizeForPortrait();
         });
     }
 });
