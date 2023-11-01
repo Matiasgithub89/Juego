@@ -9,8 +9,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let selectedImage = null; // Para rastrear la imagen seleccionada
 
-    // Crear una secuencia aleatoria de imágenes
-    const imageIndices = createRandomImageSequence(numRows, numCols, numImages);
+    // Obtener la secuencia de imágenes de la URL o generar una secuencia aleatoria
+    let imageSequence = getImageSequenceFromURL();
+    if (!imageSequence) {
+        imageSequence = createRandomImageSequence(numRows, numCols, numImages);
+        // Actualizar la URL con la secuencia generada
+        updateURLWithSequence(imageSequence);
+    }
 
     // Crear una tabla para organizar las imágenes en filas y columnas
     const table = document.createElement("table");
@@ -19,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
     for (let i = 0; i < numRows; i++) {
         const row = document.createElement("tr");
         for (let j = 0; j < numCols; j++) {
-            const imageIndex = imageIndices[i * numCols + j] % numImages + 1;
+            const imageIndex = imageSequence[i * numCols + j] % numImages + 1;
             const imagePath = `${imagesFolder}${imageIndex}.png`;
 
             const imageElement = document.createElement("img");
@@ -71,4 +76,27 @@ function createRandomImageSequence(rows, cols, maxImages) {
     }
 
     return sequence.slice(0, totalCells);
+}
+
+function getImageSequenceFromURL() {
+    // Obtener la parte de la URL después de "/"
+    const url = window.location.href;
+    const parts = url.split("/");
+    if (parts.length > 3) {
+        // Las partes después de "/" representan la secuencia de imágenes
+        const sequencePart = parts[parts.length - 1];
+        // Convertir la secuencia de imágenes en un array
+        const sequenceArray = sequencePart.split(",");
+        // Verificar que la secuencia tiene el tamaño correcto
+        if (sequenceArray.length === 20) {
+            // Convertir elementos de la secuencia a números
+            return sequenceArray.map(Number);
+        }
+    }
+    return null; // Si no se encuentra una secuencia válida en la URL
+}
+
+function updateURLWithSequence(sequence) {
+    const sequencePart = sequence.join(",");
+    window.history.replaceState({}, document.title, `/juego/${sequencePart}`);
 }
