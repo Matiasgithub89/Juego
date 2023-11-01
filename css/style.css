@@ -1,13 +1,17 @@
 /* Estilos para pantallas más grandes */
+.table {
+    border: none;  /* Elimina los bordes de la tabla */
+}
+
 .table img {
-    max-width: 100px; /* Tamaño de las imágenes en pantallas grandes */
-    margin: 10px;    /* Márgenes entre las imágenes en pantallas grandes */
+    max-width: 150px; /* Tamaño de las imágenes en pantallas grandes */
+    margin: 5px;     /* Márgenes entre las imágenes en pantallas grandes */
 }
 
 /* Estilos para pantallas más pequeñas (dispositivos móviles) */
 @media (max-width: 767px) {
     .table img {
         max-width: 60px; /* Tamaño de las imágenes en pantallas pequeñas */
-        margin: 5px;     /* Márgenes entre las imágenes en pantallas pequeñas */
+        margin: 2px;     /* Márgenes entre las imágenes en pantallas pequeñas */
     }
 }
