@@ -1,6 +1,7 @@
 /* Estilos para pantallas más grandes */
 .table {
     border: none;  /* Elimina los bordes de la tabla */
+    max-width: 100%; /* Asegura que la tabla no se desborde en pantallas pequeñas */
 }
 
 .table img {
@@ -8,7 +9,7 @@
     margin: 5px;     /* Márgenes entre las imágenes en pantallas grandes */
     padding: 2px;
 }
-.table td{
+.table td {
     padding: 2px;
 }
 
