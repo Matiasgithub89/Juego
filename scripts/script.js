@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", function () {
     const numRows = 4;
     const numCols = 5;
@@ -10,8 +9,12 @@ document.addEventListener("DOMContentLoaded", function () {
     // Crear una secuencia aleatoria de imágenes
     const imageIndices = createRandomImageSequence(numRows, numCols, numImages);
 
-    // Rellenar el tablero con imágenes
+    // Crear una tabla para organizar las imágenes en filas y columnas
+    const table = document.createElement("table");
+    table.classList.add("table");
+
     for (let i = 0; i < numRows; i++) {
+        const row = document.createElement("tr");
         for (let j = 0; j < numCols; j++) {
             const imageIndex = imageIndices[i * numCols + j] % numImages + 1;
             const imagePath = `${imagesFolder}${imageIndex}.png`;
@@ -20,13 +23,14 @@ document.addEventListener("DOMContentLoaded", function () {
             imageElement.src = imagePath;
             imageElement.classList.add("img-thumbnail");
 
-            const cell = document.createElement("div");
-            cell.classList.add("col", "mb-3");
+            const cell = document.createElement("td");
             cell.appendChild(imageElement);
-
-            gameBoard.appendChild(cell);
+            row.appendChild(cell);
         }
+        table.appendChild(row);
     }
+
+    gameBoard.appendChild(table);
 });
 
 function createRandomImageSequence(rows, cols, maxImages) {
