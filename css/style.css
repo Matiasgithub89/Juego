@@ -21,6 +21,11 @@
     }
 }
 /* Estilos para los colores en la ventana emergente */
+.color-options {
+    display: flex;
+    flex-wrap: wrap;
+}
+
 .color-option {
     width: 40px;
     height: 40px;
@@ -28,11 +33,18 @@
     cursor: pointer;
 }
 
-/* Estilos para la ventana emergente */
-#color-overlay-dialog {
-    display: none;
+.color-option[data-color="red"] {
+    background-color: red;
 }
 
-#color-overlay-dialog .modal-dialog {
-    max-width: 300px;
+.color-option[data-color="blue"] {
+    background-color: blue;
+}
+
+.color-option[data-color="brown"] {
+    background-color: brown;
+}
+
+.color-option[data-color="black"] {
+    background-color: black;
 }

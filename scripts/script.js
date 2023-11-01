@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const gameBoard = document.getElementById("game-board");
     const colorDialog = document.getElementById("color-overlay-dialog");
 
+    let selectedImage = null; // Para rastrear la imagen seleccionada
+
     // Crear una secuencia aleatoria de imágenes
     const imageIndices = createRandomImageSequence(numRows, numCols, numImages);
 
@@ -23,16 +25,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const imageElement = document.createElement("img");
             imageElement.src = imagePath;
             imageElement.classList.add("img-thumbnail");
-            imageElement.setAttribute("data-toggle", "modal");
-            imageElement.setAttribute("data-target", "#color-overlay-dialog");
 
+            // Asociar evento de clic para mostrar el cuadro de diálogo emergente
             imageElement.addEventListener("click", function () {
-                // Guardar la imagen actual en una variable para aplicar el color
-                const selectedImage = this;
-                colorDialog.querySelector(".color-option").addEventListener("click", function () {
-                    const color = this.getAttribute("data-color");
-                    selectedImage.style.backgroundColor = color;
-                });
+                selectedImage = imageElement; // Rastrear la imagen seleccionada
+                colorDialog.style.display = "block"; // Mostrar el cuadro de diálogo emergente
             });
 
             const cell = document.createElement("td");
@@ -43,6 +40,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     gameBoard.appendChild(table);
+
+    // Configurar el manejo de eventos para las opciones de color
+    const colorOptions = document.querySelectorAll(".color-option");
+    colorOptions.forEach((colorOption) => {
+        colorOption.addEventListener("click", function () {
+            const color = colorOption.getAttribute("data-color");
+            if (selectedImage) {
+                const colorImagePath = `${imagesFolder}${color}.png`; // Cambiar al nombre del archivo de color deseado
+                selectedImage.src = colorImagePath;
+            }
+            colorDialog.style.display = "none"; // Cerrar el cuadro de diálogo emergente
+        });
+    });
+
+    // Configurar el manejo de eventos para cerrar el cuadro de diálogo emergente
+    const closeButton = colorDialog.querySelector(".close");
+    closeButton.addEventListener("click", function () {
+        colorDialog.style.display = "none"; // Cerrar el cuadro de diálogo emergente
+    });
 });
 
 function createRandomImageSequence(rows, cols, maxImages) {
