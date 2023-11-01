@@ -6,6 +6,10 @@
 .table img {
     max-width: 150px; /* Tamaño de las imágenes en pantallas grandes */
     margin: 5px;     /* Márgenes entre las imágenes en pantallas grandes */
+    padding: 2px;
+}
+.table td{
+    padding: 2px;
 }
 
 /* Estilos para pantallas más pequeñas (dispositivos móviles) */
