@@ -55,6 +55,20 @@ document.addEventListener("DOMContentLoaded", function () {
             adjustImageSizeForPortrait();
         });
     }
+
+    function rotateScreen() {
+        if (window.orientation === 0) {
+            // Está en modo retrato, gira a modo paisaje
+            if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+                window.screen.orientation.lock('landscape');
+            } else if (window.screen && window.screen.lockOrientation) {
+                window.screen.lockOrientation('landscape');
+            }
+        }
+    }
+
+    // Llama a la función para forzar la rotación en la carga inicial
+    rotateScreen();
 });
 
 function createRandomImageSequence(rows, cols, maxImages) {
