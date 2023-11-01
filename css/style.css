@@ -20,3 +20,19 @@
         margin: 2px;     /* Márgenes entre las imágenes en pantallas pequeñas */
     }
 }
+/* Estilos para los colores en la ventana emergente */
+.color-option {
+    width: 40px;
+    height: 40px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+/* Estilos para la ventana emergente */
+#color-overlay-dialog {
+    display: none;
+}
+
+#color-overlay-dialog .modal-dialog {
+    max-width: 300px;
+}

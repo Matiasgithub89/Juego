@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const imagesFolder = "imagenes/";
 
     const gameBoard = document.getElementById("game-board");
+    const colorDialog = document.getElementById("color-overlay-dialog");
 
     // Crear una secuencia aleatoria de imágenes
     const imageIndices = createRandomImageSequence(numRows, numCols, numImages);
@@ -22,6 +23,17 @@ document.addEventListener("DOMContentLoaded", function () {
             const imageElement = document.createElement("img");
             imageElement.src = imagePath;
             imageElement.classList.add("img-thumbnail");
+            imageElement.setAttribute("data-toggle", "modal");
+            imageElement.setAttribute("data-target", "#color-overlay-dialog");
+
+            imageElement.addEventListener("click", function () {
+                // Guardar la imagen actual en una variable para aplicar el color
+                const selectedImage = this;
+                colorDialog.querySelector(".color-option").addEventListener("click", function () {
+                    const color = this.getAttribute("data-color");
+                    selectedImage.style.backgroundColor = color;
+                });
+            });
 
             const cell = document.createElement("td");
             cell.appendChild(imageElement);
