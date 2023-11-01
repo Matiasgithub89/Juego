@@ -14,7 +14,7 @@
 }
 
 /* Estilos para pantallas más pequeñas (dispositivos móviles) */
-@media (max-width: 867px) {
+@media (max-width: 1000px) {
     .table img {
         max-width: 60px; /* Tamaño de las imágenes en pantallas pequeñas */
         margin: 2px;     /* Márgenes entre las imágenes en pantallas pequeñas */
