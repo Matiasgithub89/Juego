@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const numRows = 4;
     const numCols = 5;
     const numImages = 20; // Ajusta este valor al número total de imágenes que tengas
-    const imagesFolder = "imagenes/";
+    const imagesFolder = "juego/imagenes/";
 
     const gameBoard = document.getElementById("game-board");
     const colorDialog = document.getElementById("color-overlay-dialog");
