@@ -143,7 +143,24 @@ function generateQRCode() {
     // Crear un div para mostrar la imagen en el modal
     const qrModal = document.createElement("div");
     qrModal.classList.add("modal");
-    qrModal.innerHTML = '<div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Código QR</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="modal-body"></div></div></div>';
+    qrModal.innerHTML = `
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-center">Compartir Tablero</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body d-flex justify-content-center align-items-center">
+                <!-- Aquí puedes agregar la imagen del QR -->
+            </div>
+        </div>
+    </div>
+`;
+
+
+    // qrModal.innerHTML = '<div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Compartir Tablero</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="modal-body"></div></div></div>';
     qrModal.querySelector(".modal-body").appendChild(qrImage);
 
     // Agregar el modal al documento y mostrarlo

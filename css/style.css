@@ -68,3 +68,6 @@
     width: 40px;
     height: 40px;
 }
+.modal-content{
+    max-width: 250px;
+}
