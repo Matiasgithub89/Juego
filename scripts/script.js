@@ -77,26 +77,31 @@ function createRandomImageSequence(rows, cols, maxImages) {
 
     return sequence.slice(0, totalCells);
 }
-
 function getImageSequenceFromURL() {
-    // Obtener la parte de la URL después de "/"
+    // Obtén la parte de la URL después de "?"
     const url = window.location.href;
-    const parts = url.split("/");
-    if (parts.length > 3) {
-        // Las partes después de "/" representan la secuencia de imágenes
-        const sequencePart = parts[parts.length - 1];
-        // Convertir la secuencia de imágenes en un array
-        const sequenceArray = sequencePart.split(",");
-        // Verificar que la secuencia tiene el tamaño correcto
-        if (sequenceArray.length === 20) {
-            // Convertir elementos de la secuencia a números
-            return sequenceArray.map(Number);
+    const queryString = url.split("?")[1];
+
+    if (queryString) {
+        // Parsea los parámetros de consulta en un objeto
+        const params = new URLSearchParams(queryString);
+        const sequence = params.get("sequence");
+
+        if (sequence) {
+            // Convierte la secuencia en un array
+            const sequenceArray = sequence.split(",");
+            
+            if (sequenceArray.length === 20) {
+                // Convierte elementos de la secuencia a números
+                return sequenceArray.map(Number);
+            }
         }
     }
-    return null; // Si no se encuentra una secuencia válida en la URL
+    return null;
 }
 
 function updateURLWithSequence(sequence) {
     const sequencePart = sequence.join(",");
-    window.history.replaceState({}, document.title, `/juego/${sequencePart}`);
+    // Actualiza la URL con la secuencia como parámetro de consulta
+    window.history.replaceState({}, document.title, `/juego/?sequence=${sequencePart}`);
 }
