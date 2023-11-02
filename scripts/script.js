@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const numRows = 4;
     const numCols = 5;
     const numImages = 20; // Ajusta este valor al número total de imágenes que tengas
-    const imagesFolder = "imagenes/";
+    const imagesFolder = "juego/imagenes/";
 
     const gameBoard = document.getElementById("game-board");
     const colorDialog = document.getElementById("color-overlay-dialog");
@@ -77,31 +77,26 @@ function createRandomImageSequence(rows, cols, maxImages) {
 
     return sequence.slice(0, totalCells);
 }
+
 function getImageSequenceFromURL() {
-    // Obtén la parte de la URL después de "?"
+    // Obtener la parte de la URL después de "/"
     const url = window.location.href;
-    const queryString = url.split("?")[1];
-
-    if (queryString) {
-        // Parsea los parámetros de consulta en un objeto
-        const params = new URLSearchParams(queryString);
-        const sequence = params.get("sequence");
-
-        if (sequence) {
-            // Convierte la secuencia en un array
-            const sequenceArray = sequence.split(",");
-            
-            if (sequenceArray.length === 20) {
-                // Convierte elementos de la secuencia a números
-                return sequenceArray.map(Number);
-            }
+    const parts = url.split("/");
+    if (parts.length > 3) {
+        // Las partes después de "/" representan la secuencia de imágenes
+        const sequencePart = parts[parts.length - 1];
+        // Convertir la secuencia de imágenes en un array
+        const sequenceArray = sequencePart.split(",");
+        // Verificar que la secuencia tiene el tamaño correcto
+        if (sequenceArray.length === 20) {
+            // Convertir elementos de la secuencia a números
+            return sequenceArray.map(Number);
         }
     }
-    return null;
+    return null; // Si no se encuentra una secuencia válida en la URL
 }
 
 function updateURLWithSequence(sequence) {
     const sequencePart = sequence.join(",");
-    // Actualiza la URL con la secuencia como parámetro de consulta
-    window.history.replaceState({}, document.title, `/juego/?sequence=${sequencePart}`);
+    window.history.replaceState({}, document.title, `/juego/${sequencePart}`);
 }
