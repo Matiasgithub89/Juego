@@ -1,4 +1,4 @@
-/* Estilos para pantallas más grandes */
+
 .table {
     border: none;  /* Elimina los bordes de la tabla */
     max-width: 100%; /* Asegura que la tabla no se desborde en pantallas pequeñas */
@@ -47,4 +47,24 @@
 
 .color-option[data-color="black"] {
     background-color: black;
+}
+#floating-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000; /* Asegura que esté por encima del contenido */
+}
+
+#generate-qr-button {
+    display: block;
+    background-color: #007BFF;
+    border-radius: 50%;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+#generate-qr-button img {
+    width: 40px;
+    height: 40px;
 }
