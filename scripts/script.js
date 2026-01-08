@@ -378,3 +378,9 @@ function showInstructionsModal() {
         modal.remove();
     });
 }
+// ✅ PWA: registrar service worker (solo en https o localhost)
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(console.error);
+  });
+}
