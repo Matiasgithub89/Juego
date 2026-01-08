@@ -1,28 +1,28 @@
 document.addEventListener("DOMContentLoaded", function () {
     const numRows = 4;
     const numCols = 5;
-    const numImages = 55; // Ajusta este valor al número total de imágenes que tengas
+    const numImages = 55; // total de imágenes disponibles
     const imagesFolder = "./imagenes/";
 
     const gameBoard = document.getElementById("game-board");
     const colorDialog = document.getElementById("color-overlay-dialog");
 
-    let selectedImage = null; // Para rastrear la imagen seleccionada
+    let selectedImage = null;
 
-    // Obtener la secuencia de imágenes de la URL o generar una secuencia aleatoria
+    // Secuencia desde URL o random
     let imageSequence = getImageSequenceFromURL();
     if (!imageSequence) {
         imageSequence = createRandomImageSequence(numRows, numCols, numImages);
-        // Actualizar la URL con la secuencia generada
         updateURLWithSequence(imageSequence);
     }
 
-    // Crear una tabla para organizar las imágenes en filas y columnas
+    // Construir tabla
     const table = document.createElement("table");
     table.classList.add("table");
 
     for (let i = 0; i < numRows; i++) {
         const row = document.createElement("tr");
+
         for (let j = 0; j < numCols; j++) {
             const imageIndex = imageSequence[i * numCols + j] % numImages + 1;
             const imagePath = `${imagesFolder}${imageIndex}.png`;
@@ -31,50 +31,72 @@ document.addEventListener("DOMContentLoaded", function () {
             imageElement.src = imagePath;
             imageElement.classList.add("img-thumbnail");
 
-            // Asociar evento de clic para mostrar el cuadro de diálogo emergente
+            // ✅ Guardar info para “Jefes”
+            imageElement.dataset.originalSrc = imagePath; // imagen real
+            imageElement.dataset.imageId = String(imageIndex);
+            imageElement.dataset.mark = ""; // red|blue|brown|black|"" (sin marca)
+
             imageElement.addEventListener("click", function () {
-                selectedImage = imageElement; // Rastrear la imagen seleccionada
-                colorDialog.style.display = "block"; // Mostrar el cuadro de diálogo emergente
+                selectedImage = imageElement;
+                // mostramos el modal bootstrap
+                $(colorDialog).modal("show");
             });
 
             const cell = document.createElement("td");
             cell.appendChild(imageElement);
             row.appendChild(cell);
         }
+
         table.appendChild(row);
     }
 
     gameBoard.appendChild(table);
 
-    // Configurar el manejo de eventos para las opciones de color
+    // Manejo de colores
     const colorOptions = document.querySelectorAll(".color-option");
     colorOptions.forEach((colorOption) => {
         colorOption.addEventListener("click", function () {
             const color = colorOption.getAttribute("data-color");
-            if (selectedImage) {
-                const colorImagePath = `${imagesFolder}${color}.png`; // Cambiar al nombre del archivo de color deseado
+
+            if (!selectedImage) {
+                $(colorDialog).modal("hide");
+                return;
+            }
+
+            if (color === "clear") {
+                // ✅ quitar marca: volver a original
+                selectedImage.dataset.mark = "";
+                selectedImage.src = selectedImage.dataset.originalSrc || selectedImage.src;
+            } else {
+                // ✅ setear marca
+                selectedImage.dataset.mark = color;
+
+                // pintado como lo venías haciendo (cambia el src por el png de color)
+                const colorImagePath = `${imagesFolder}${color}.png`;
                 selectedImage.src = colorImagePath;
             }
-            colorDialog.style.display = "none"; // Cerrar el cuadro de diálogo emergente
+
+            $(colorDialog).modal("hide");
         });
     });
 
-    // Configurar el manejo de eventos para cerrar el cuadro de diálogo emergente
-    const closeButton = colorDialog.querySelector(".close");
-    closeButton.addEventListener("click", function () {
-        colorDialog.style.display = "none"; // Cerrar el cuadro de diálogo emergente
+    // Crear botones flotantes (QR + Jefes)
+    if (imageSequence !== null) {
+        createFloatingButtons();
+    }
+
+    // Listener QR
+    const generateQRButton = document.getElementById("generate-qr-button");
+    generateQRButton.addEventListener("click", function (e) {
+        e.preventDefault();
+        generateQRCode();
     });
 
-    // Verificar si la secuencia se ha cargado antes de crear el botón de Código QR
-    if (imageSequence !== null) {
-        createQRButton(); // Llama a la función para crear el botón de QR
-    }
-    
-    // Agregar evento de clic al botón de generar el código QR
-    const generateQRButton = document.getElementById("generate-qr-button");
-    generateQRButton.addEventListener("click", function () {
-        console.log("Botón de Código QR clickeado"); // Agregamos un console.log
-        generateQRCode();
+    // Listener Jefes
+    const showGroupedButton = document.getElementById("show-grouped-button");
+    showGroupedButton.addEventListener("click", function (e) {
+        e.preventDefault();
+        showGroupedCardsModal();
     });
 });
 
@@ -91,21 +113,16 @@ function createRandomImageSequence(rows, cols, maxImages) {
 }
 
 function getImageSequenceFromURL() {
-    // Obtén la parte de la URL después de "?"
     const url = window.location.href;
     const queryString = url.split("?")[1];
 
     if (queryString) {
-        // Parsea los parámetros de consulta en un objeto
         const params = new URLSearchParams(queryString);
         const sequence = params.get("sequence");
 
         if (sequence) {
-            // Convierte la secuencia en un array
             const sequenceArray = sequence.split(",");
-            
             if (sequenceArray.length === 20) {
-                // Convierte elementos de la secuencia a números
                 return sequenceArray.map(Number);
             }
         }
@@ -115,59 +132,142 @@ function getImageSequenceFromURL() {
 
 function updateURLWithSequence(sequence) {
     const sequencePart = sequence.join(",");
-    // Actualiza la URL con la secuencia como parámetro de consulta
     window.history.replaceState({}, document.title, `./?sequence=${sequencePart}`);
 }
 
-// Función para crear el botón de Código QR
-function createQRButton() {
+// ✅ Botones flotantes: Jefes + QR
+function createFloatingButtons() {
     const floatingButton = document.getElementById("floating-button");
+    floatingButton.innerHTML = "";
+
+    // Botón Jefes
+    const showGroupedButton = document.createElement("a");
+    showGroupedButton.id = "show-grouped-button";
+    showGroupedButton.classList.add("floating-action");
+    showGroupedButton.href = "#";
+    showGroupedButton.innerHTML = '<img src="imagenes/boton-jefes.png" alt="Ver cartas de jefes">';
+    floatingButton.appendChild(showGroupedButton);
+
+    // Botón QR
     const generateQRButton = document.createElement("a");
     generateQRButton.id = "generate-qr-button";
-    // generateQRButton.href = "#"; // Puedes eliminar esta línea
+    generateQRButton.classList.add("floating-action");
+    generateQRButton.href = "#";
     generateQRButton.innerHTML = '<img src="imagenes/boton-generar-qr.png" alt="Generar Código QR">';
     floatingButton.appendChild(generateQRButton);
 }
 
-// Función para generar el código QR
+// QR
 function generateQRCode() {
-    // Obtener la URL actual con la secuencia
     const currentURL = window.location.href;
-    // Crear una URL para la API de generación de códigos QR
     const qrAPIURL = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(currentURL)}&size=200x200`;
 
-    // Crear una imagen con el código QR
     const qrImage = document.createElement("img");
     qrImage.src = qrAPIURL;
 
-    // Crear un div para mostrar la imagen en el modal
     const qrModal = document.createElement("div");
     qrModal.classList.add("modal");
     qrModal.innerHTML = `
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title text-center">Compartir Tablero</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body d-flex justify-content-center align-items-center">
-                <!-- Aquí puedes agregar la imagen del QR -->
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Compartir Tablero</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body d-flex justify-content-center align-items-center"></div>
             </div>
         </div>
-    </div>
-`;
+    `;
 
-
-    // qrModal.innerHTML = '<div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Compartir Tablero</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="modal-body"></div></div></div>';
     qrModal.querySelector(".modal-body").appendChild(qrImage);
 
-    // Agregar el modal al documento y mostrarlo
     document.body.appendChild(qrModal);
     $(qrModal).modal("show");
+
+    // Limpieza cuando se cierra
+    $(qrModal).on("hidden.bs.modal", function () {
+        qrModal.remove();
+    });
 }
 
+// ✅ Modal Jefes: agrupa por color y muestra la imagen original
+function showGroupedCardsModal() {
+    const allImages = document.querySelectorAll("#game-board img.img-thumbnail");
 
+    const groups = {
+        red: [],
+        blue: [],
+        brown: [],
+        black: [],
+    };
 
+    allImages.forEach((img) => {
+        const mark = (img.dataset.mark || "").trim();
+        if (groups[mark]) {
+            groups[mark].push(img);
+        }
+    });
 
+    const totalMarked =
+        groups.red.length + groups.blue.length + groups.brown.length + groups.black.length;
+
+    const sectionsHTML = Object.entries(groups)
+        .map(([color, imgs]) => {
+            if (imgs.length === 0) return "";
+
+            const cardsHTML = imgs
+                .map((img) => {
+                    const original = img.dataset.originalSrc || "";
+                    return `
+                        <div class="chief-card">
+                            <img src="${original}" alt="Carta" />
+                        </div>
+                    `;
+                })
+                .join("");
+
+            return `
+                <div class="chief-section">
+                    <div class="chief-section-title ${color}">
+                        ${color.toUpperCase()} (${imgs.length})
+                    </div>
+                    <div class="chief-cards-grid">
+                        ${cardsHTML}
+                    </div>
+                </div>
+            `;
+        })
+        .join("");
+
+    const modal = document.createElement("div");
+    modal.classList.add("modal");
+    modal.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content chiefs-modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cartas para adivinar (Jefes)</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    ${
+                        totalMarked === 0
+                            ? `<p class="text-muted mb-0">Todavía no hay cartas marcadas.</p>`
+                            : sectionsHTML
+                    }
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    $(modal).modal("show");
+
+    // Limpieza cuando se cierra
+    $(modal).on("hidden.bs.modal", function () {
+        modal.remove();
+    });
+}
