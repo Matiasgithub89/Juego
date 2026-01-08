@@ -279,3 +279,34 @@ body {
     height: auto;
     display: block;
 }
+.instructions-modal-content {
+    max-width: min(92vw, 520px);
+}
+
+.instructions-body {
+    font-size: 0.95rem;
+    line-height: 1.25rem;
+}
+
+.instructions-tip {
+    background: #f6f8ff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+.instructions-intro {
+    background: linear-gradient(135deg, #f7f9ff, #ffffff);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+
+.instructions-intro h6 {
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.instructions-intro p {
+    font-size: 0.95rem;
+    line-height: 1.3rem;
+}

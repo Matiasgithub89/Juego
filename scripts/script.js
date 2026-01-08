@@ -101,6 +101,12 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
         showGroupedCardsModal();
     });
+    // Listener Instrucciones
+    const helpButton = document.getElementById("help-button");
+    helpButton.addEventListener("click", function (e) {
+        e.preventDefault();
+        showInstructionsModal();
+    });
 });
 
 /**
@@ -152,6 +158,14 @@ function createFloatingButtons() {
     const floatingButton = document.getElementById("floating-button");
     floatingButton.innerHTML = "";
 
+    // Botón Instrucciones
+    const helpButton = document.createElement("a");
+    helpButton.id = "help-button";
+    helpButton.classList.add("floating-action");
+    helpButton.href = "#";
+    helpButton.innerHTML = '<img src="imagenes/boton-instrucciones.png" alt="Instrucciones">';
+    floatingButton.appendChild(helpButton);
+
     // Botón Jefes
     const showGroupedButton = document.createElement("a");
     showGroupedButton.id = "show-grouped-button";
@@ -168,6 +182,7 @@ function createFloatingButtons() {
     generateQRButton.innerHTML = '<img src="imagenes/boton-generar-qr.png" alt="Generar Código QR">';
     floatingButton.appendChild(generateQRButton);
 }
+
 
 // QR
 function generateQRCode() {
@@ -279,6 +294,86 @@ function showGroupedCardsModal() {
     $(modal).modal("show");
 
     // Limpieza cuando se cierra
+    $(modal).on("hidden.bs.modal", function () {
+        modal.remove();
+    });
+}
+function showInstructionsModal() {
+    const modal = document.createElement("div");
+    modal.classList.add("modal", "fade");
+    modal.setAttribute("tabindex", "-1");
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-hidden", "true");
+
+    modal.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content instructions-modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Instrucciones</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body instructions-body">
+                    <div class="instructions-intro mb-3">
+                        <h6>🕵️ Operación Relacionando</h6>
+
+                        <p>
+                            Un grupo de agentes intenta comunicarse usando pistas imperfectas.<br />
+                            Las imágenes del tablero representan información sensible:
+                            algunas pertenecen a tu equipo, otras al equipo rival…
+                            y otras no deberían tocarse jamás.
+                        </p>
+
+                        <p>
+                            Los <strong>Jefes</strong> conocen la verdad detrás de cada carta,
+                            pero no pueden decirla directamente.<br />
+                            Solo pueden dar <strong>una palabra y un número</strong>.
+                        </p>
+
+                        <p>
+                            El resto del equipo deberá interpretar, asociar y arriesgarse.
+                        </p>
+
+                        <p class="mb-0 font-italic">
+                            ¿Podrán entender el mensaje correcto…<br />
+                            o caerán en una trampa?
+                        </p>
+                    </div>
+
+                    <p class="mb-2"><strong>Objetivo:</strong> que tu equipo adivine todas sus cartas.</p>
+
+                    <ol class="pl-3 mb-3">
+                        <li><strong>Armar equipos:</strong> 2 equipos y en cada uno un <strong>Jefe</strong>.</li>
+                        <li><strong>Host:</strong> marca las cartas del tablero con colores (solo él ve esa info).</li>
+                        <li><strong>Turno del Jefe:</strong> da una pista como <em>“Círculo 2”</em> (una palabra + número).</li>
+                        <li><strong>Equipo adivina:</strong> toca cartas que coincidan con la pista (de a una).</li>
+                        <li><strong>Si acierta</strong>, puede seguir adivinando hasta el número (opcional +1 si querés regla estilo Codenames).</li>
+                        <li><strong>Si falla</strong> (carta que no era), termina el turno.</li>
+                    </ol>
+
+                    <div class="instructions-tip">
+                        <strong>Tip:</strong> El botón de <strong>Jefes</strong> muestra agrupadas las cartas marcadas
+                        (rojo/azul/marrón/negro) para ayudar a planear pistas.
+                    </div>
+
+                    <hr class="my-3" />
+
+                    <p class="mb-1"><strong>Recomendación:</strong></p>
+                    <ul class="pl-3 mb-0">
+                        <li>Jugá en <strong>horizontal</strong> para ver las 4 filas.</li>
+                        <li>Usá el botón <strong>QR</strong> para que todos abran el mismo tablero.</li>
+                        <li>Si querés “asesino” tipo Código Secreto: definí el color <strong>negro</strong> como pérdida instantánea.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    $(modal).modal("show");
+
     $(modal).on("hidden.bs.modal", function () {
         modal.remove();
     });
