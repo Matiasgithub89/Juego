@@ -1,25 +1,60 @@
+/* =========================
+   TABLERO RESPONSIVE (TABLA)
+   ========================= */
+
+/* Hacemos que la tabla no meta padding/bordes raros */
 .table {
     border: none;
-    max-width: 100%;
+    margin: 0 auto;
+    width: auto;          /* evita estirarse raro */
+    table-layout: fixed;  /* celdas parejas */
+    border-collapse: collapse;
 }
 
 .table td {
-    padding: 2px;
+    padding: 0;
 }
 
-.table img {
-    max-width: 150px;
-    margin: 5px;
-    padding: 2px;
+/* Tamaño fluido de cartas:
+   - En mobile se achica solo
+   - En desktop se mantiene agradable */
+.table img.img-thumbnail {
+    width: clamp(52px, 16vw, 140px); /* MIN / FLUIDO / MAX */
+    height: auto;
+    display: block;
+
+    margin: clamp(2px, 1vw, 6px);
+    padding: 0;
+    border-radius: 10px;
+
+    /* Saca el borde pesado del thumbnail de bootstrap */
+    border: 1px solid rgba(0,0,0,0.10);
+    background: #fff;
+
+    /* sensación más "app" */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.10);
+    transition: transform 0.08s ease;
 }
 
-/* Pantallas pequeñas */
-@media (max-width: 1000px) {
-    .table img {
-        max-width: 60px;
-        margin: 2px;
+/* Feedback táctil */
+.table img.img-thumbnail:active {
+    transform: scale(0.98);
+}
+
+/* Ajuste fino para pantallas MUY chicas */
+@media (max-width: 420px) {
+    .table img.img-thumbnail {
+        width: clamp(46px, 18vw, 92px);
+        border-radius: 8px;
     }
 }
+
+/* Evita que el contenedor de bootstrap meta paddings molestos en mobile */
+.container {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+}
+
 
 /* Selector de colores */
 .color-options {
