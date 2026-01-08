@@ -310,10 +310,3 @@ body {
     font-size: 0.95rem;
     line-height: 1.3rem;
 }
-/* Wrapper del tablero: ocupa el alto y centra */
-#board-wrapper {
-    min-height: 100svh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
