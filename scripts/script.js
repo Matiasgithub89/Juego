@@ -403,7 +403,7 @@ function showGroupedCardsModal() {
     };
 
     allImages.forEach((img) => {
-        const mark = (img.dataset.mark || "").trim();
+        const mark = ((img.dataset.mark || img.dataset.role) || "").trim();
         if (groups[mark]) {
             groups[mark].push(img);
         }
