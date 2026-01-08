@@ -7,6 +7,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const gameBoard = document.getElementById("game-board");
     const colorDialog = document.getElementById("color-overlay-dialog");
 
+    // Params de modo
+    const params = new URLSearchParams(window.location.search);
+    const mode = (params.get("mode") || "").trim(); // "" | "chiefs" | "play"
+    const isPlayMode = mode === "play"; // jugadores: revela al tocar
+    const isChiefsMode = mode === "chiefs"; // jefes: puede ver agrupadas (botón jefes visible)
+
     let selectedImage = null;
 
     // Secuencia desde URL o random
@@ -24,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const row = document.createElement("tr");
 
         for (let j = 0; j < numCols; j++) {
-            // ✅ imageSequence ahora contiene valores 0..(numImages-1)
+            // imageSequence contiene valores 0..(numImages-1)
             const imageIndexZeroBased = imageSequence[i * numCols + j];
             const imageIndex = imageIndexZeroBased + 1; // pasa a 1..55
 
@@ -34,14 +40,22 @@ document.addEventListener("DOMContentLoaded", function () {
             imageElement.src = imagePath;
             imageElement.classList.add("img-thumbnail");
 
-            // ✅ Guardar info para “Jefes”
+            // Guardar info
             imageElement.dataset.originalSrc = imagePath; // imagen real
             imageElement.dataset.imageId = String(imageIndex);
-            imageElement.dataset.mark = ""; // red|blue|brown|black|"" (sin marca)
+            imageElement.dataset.mark = ""; // marcado por host: red|blue|brown|"" (sin marca)
+            imageElement.dataset.role = ""; // rol "real" desde marks (para modo play): red|blue|brown|""
+            imageElement.dataset.revealed = "0"; // para evitar tocar/revelar repetido
 
             imageElement.addEventListener("click", function () {
+                if (isPlayMode) {
+                    // ✅ MODO JUGADORES: revela según marks (neutrales quedan igual)
+                    revealCardForPlayers(imageElement, imagesFolder);
+                    return;
+                }
+
+                // ✅ MODO HOST/JEFES: permitir marcar colores
                 selectedImage = imageElement;
-                // mostramos el modal bootstrap
                 $(colorDialog).modal("show");
             });
 
@@ -55,11 +69,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     gameBoard.appendChild(table);
 
-    // Manejo de colores
+    // ✅ Si hay marks en la URL, cargar roles reales por carta (sirve para play y para chiefs si querés)
+    applyRolesFromURLMarks(numRows, numCols);
+
+    // Manejo de colores (solo relevante cuando se usa el selector)
     const colorOptions = document.querySelectorAll(".color-option");
     colorOptions.forEach((colorOption) => {
         colorOption.addEventListener("click", function () {
-            const color = colorOption.getAttribute("data-color");
+            const color = (colorOption.getAttribute("data-color") || "").trim();
 
             if (!selectedImage) {
                 $(colorDialog).modal("hide");
@@ -67,14 +84,14 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (color === "clear") {
-                // ✅ quitar marca: volver a original
+                // quitar marca: volver a original
                 selectedImage.dataset.mark = "";
                 selectedImage.src = selectedImage.dataset.originalSrc || selectedImage.src;
             } else {
-                // ✅ setear marca
+                // setear marca (en tu juego: brown = asesino)
                 selectedImage.dataset.mark = color;
 
-                // pintado como lo venías haciendo (cambia el src por el png de color)
+                // pintado visual (overlay png de color)
                 const colorImagePath = `${imagesFolder}${color}.png`;
                 selectedImage.src = colorImagePath;
             }
@@ -83,30 +100,51 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // Crear botones flotantes (QR + Jefes)
+    // Crear botones flotantes (depende del modo)
     if (imageSequence !== null) {
-        createFloatingButtons();
+        createFloatingButtons(isPlayMode);
     }
 
-    // Listener QR
+    // Listener QR (siempre existe)
     const generateQRButton = document.getElementById("generate-qr-button");
-    generateQRButton.addEventListener("click", function (e) {
-        e.preventDefault();
-        generateQRCode();
-    });
+    if (generateQRButton) {
+        generateQRButton.addEventListener("click", function (e) {
+            e.preventDefault();
+            generateQRCode(); // ahora genera 2 QRs: Jefes + Jugadores
+        });
+    }
 
-    // Listener Jefes
+    // Listener Jefes (solo si el botón existe)
     const showGroupedButton = document.getElementById("show-grouped-button");
-    showGroupedButton.addEventListener("click", function (e) {
-        e.preventDefault();
-        showGroupedCardsModal();
-    });
-    // Listener Instrucciones
+    if (showGroupedButton) {
+        showGroupedButton.addEventListener("click", function (e) {
+            e.preventDefault();
+            showGroupedCardsModal();
+        });
+    }
+
+    // Listener Instrucciones (siempre existe)
     const helpButton = document.getElementById("help-button");
-    helpButton.addEventListener("click", function (e) {
-        e.preventDefault();
-        showInstructionsModal();
-    });
+    if (helpButton) {
+        helpButton.addEventListener("click", function (e) {
+            e.preventDefault();
+            showInstructionsModal();
+        });
+    }
+
+    // Opcional: si estás en modo play y NO hay marks, avisar (para evitar confusión)
+    if (isPlayMode) {
+        const p = new URLSearchParams(window.location.search);
+        const marksEncoded = (p.get("marks") || "").trim();
+        if (!marksEncoded) {
+            console.warn("[Relacionando] Estás en mode=play pero no hay marks=... en la URL. No se podrá revelar nada.");
+        }
+    }
+
+    // Opcional: en modo chiefs podrías querer bloquear marcado por accidente
+    // (si en tu diseño el QR de chiefs es solo para VER agrupadas)
+    // En ese caso, podríamos deshabilitar el modal de colores cuando mode=chiefs.
+    // Por ahora lo dejamos habilitado como venías.
 });
 
 /**
@@ -130,35 +168,114 @@ function createRandomImageSequence(rows, cols, maxImages) {
 }
 
 function getImageSequenceFromURL() {
-    const url = window.location.href;
-    const queryString = url.split("?")[1];
+    const params = new URLSearchParams(window.location.search);
+    const sequence = params.get("sequence");
 
-    if (queryString) {
-        const params = new URLSearchParams(queryString);
-        const sequence = params.get("sequence");
-
-        if (sequence) {
-            const sequenceArray = sequence.split(",");
-            if (sequenceArray.length === 20) {
-                // OJO: acá llegan números 0..54 (nuevo formato)
-                return sequenceArray.map((v) => Number(v));
-            }
+    if (sequence) {
+        const sequenceArray = sequence.split(",");
+        if (sequenceArray.length === 20) {
+            // llegan números 0..54
+            const parsed = sequenceArray.map((v) => Number(v)).filter((n) => Number.isFinite(n));
+            if (parsed.length === 20) return parsed;
         }
     }
     return null;
 }
 
 function updateURLWithSequence(sequence) {
-    const sequencePart = sequence.join(",");
-    window.history.replaceState({}, document.title, `./?sequence=${sequencePart}`);
+    const url = new URL(window.location.href);
+    url.searchParams.set("sequence", sequence.join(","));
+    // no tocamos otros params (mode, marks) si existieran
+    window.history.replaceState({}, document.title, url.toString());
 }
 
-// ✅ Botones flotantes: Jefes + QR
-function createFloatingButtons() {
+/**
+ * =========================
+ * ✅ MARKS / ROLES (para QR de jugadores y jefes)
+ * =========================
+ *
+ * marks: string de largo 20, cada char representa una carta:
+ *  - r = red
+ *  - b = blue
+ *  - m = brown (asesino en tu juego)
+ *  - n = neutral (sin marca) -> se queda igual al tocar
+ */
+function encodeMarksFromBoard() {
+    const imgs = document.querySelectorAll("#game-board img.img-thumbnail");
+    return Array.from(imgs)
+        .map((img) => (img.dataset.mark || "").trim())
+        .map((mark) => {
+            if (mark === "red") return "r";
+            if (mark === "blue") return "b";
+            if (mark === "brown") return "m";
+            // en tu juego no usamos black, pero si existiera lo tratamos como neutral
+            return "n";
+        })
+        .join("");
+}
+
+function decodeMarksToRoles(encoded) {
+    return encoded.split("").map((ch) => {
+        if (ch === "r") return "red";
+        if (ch === "b") return "blue";
+        if (ch === "m") return "brown";
+        return ""; // neutral
+    });
+}
+
+function applyRolesFromURLMarks(numRows, numCols) {
+    const totalCells = numRows * numCols;
+    const params = new URLSearchParams(window.location.search);
+    const marksEncoded = (params.get("marks") || "").trim();
+
+    const imgs = document.querySelectorAll("#game-board img.img-thumbnail");
+    if (!imgs || imgs.length !== totalCells) return;
+
+    if (!marksEncoded || marksEncoded.length !== totalCells) {
+        // sin marks => no roles
+        imgs.forEach((img) => (img.dataset.role = ""));
+        return;
+    }
+
+    const roles = decodeMarksToRoles(marksEncoded);
+    imgs.forEach((img, idx) => {
+        img.dataset.role = roles[idx] || "";
+    });
+}
+
+/**
+ * ✅ Modo jugadores: al tocar, revela el color real según role.
+ * Neutral: queda igual.
+ * Brown: muestra brown.png (asesino).
+ */
+function revealCardForPlayers(imgEl, imagesFolder) {
+    if (!imgEl) return;
+
+    // Evita doble toque
+    if (imgEl.dataset.revealed === "1") return;
+
+    const role = (imgEl.dataset.role || "").trim(); // red|blue|brown|""
+
+    // Neutral => no cambia
+    if (!role) return;
+
+    imgEl.dataset.revealed = "1";
+    imgEl.src = `${imagesFolder}${role}.png`;
+}
+
+/**
+ * =========================
+ * ✅ BOTONES FLOTANTES
+ * =========================
+ * En modo play: NO mostramos botón Jefes.
+ */
+function createFloatingButtons(isPlayMode) {
     const floatingButton = document.getElementById("floating-button");
+    if (!floatingButton) return;
+
     floatingButton.innerHTML = "";
 
-    // Botón Instrucciones
+    // Instrucciones (siempre)
     const helpButton = document.createElement("a");
     helpButton.id = "help-button";
     helpButton.classList.add("floating-action");
@@ -166,31 +283,57 @@ function createFloatingButtons() {
     helpButton.innerHTML = '<img src="imagenes/boton-instrucciones.png" alt="Instrucciones">';
     floatingButton.appendChild(helpButton);
 
-    // Botón Jefes
-    const showGroupedButton = document.createElement("a");
-    showGroupedButton.id = "show-grouped-button";
-    showGroupedButton.classList.add("floating-action");
-    showGroupedButton.href = "#";
-    showGroupedButton.innerHTML = '<img src="imagenes/boton-jefes.png" alt="Ver cartas de jefes">';
-    floatingButton.appendChild(showGroupedButton);
+    // Jefes (solo si NO es play)
+    if (!isPlayMode) {
+        const showGroupedButton = document.createElement("a");
+        showGroupedButton.id = "show-grouped-button";
+        showGroupedButton.classList.add("floating-action");
+        showGroupedButton.href = "#";
+        showGroupedButton.innerHTML = '<img src="imagenes/boton-jefes.png" alt="Ver cartas de jefes">';
+        floatingButton.appendChild(showGroupedButton);
+    }
 
-    // Botón QR
+    // QR (siempre)
     const generateQRButton = document.createElement("a");
     generateQRButton.id = "generate-qr-button";
     generateQRButton.classList.add("floating-action");
     generateQRButton.href = "#";
-    generateQRButton.innerHTML = '<img src="imagenes/boton-generar-qr.png" alt="Generar Código QR">';
+    generateQRButton.innerHTML = '<img src="imagenes/boton-generar-qr.png" alt="Compartir / QR">';
     floatingButton.appendChild(generateQRButton);
 }
 
-
-// QR
+/**
+ * =========================
+ * ✅ QR: ahora genera 2 QRs
+ * - QR Jefes: mode=chiefs + marks=...
+ * - QR Jugadores: mode=play + marks=...
+ *
+ * Ambos mantienen el mismo sequence.
+ */
 function generateQRCode() {
-    const currentURL = window.location.href;
-    const qrAPIURL = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(currentURL)}&size=200x200`;
+    const baseUrl = new URL(window.location.href);
 
-    const qrImage = document.createElement("img");
-    qrImage.src = qrAPIURL;
+    // Asegurar que el tablero esté marcado antes de compartir (marks)
+    const marks = encodeMarksFromBoard();
+
+    // Construir URL Jefes
+    const chiefsUrl = new URL(baseUrl.toString());
+    chiefsUrl.searchParams.set("mode", "chiefs");
+    chiefsUrl.searchParams.set("marks", marks);
+
+    // Construir URL Jugadores
+    const playUrl = new URL(baseUrl.toString());
+    playUrl.searchParams.set("mode", "play");
+    playUrl.searchParams.set("marks", marks);
+
+    // QR API
+    const chiefsQR = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+        chiefsUrl.toString()
+    )}&size=220x220`;
+
+    const playQR = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+        playUrl.toString()
+    )}&size=220x220`;
 
     const qrModal = document.createElement("div");
     qrModal.classList.add("modal");
@@ -198,17 +341,41 @@ function generateQRCode() {
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Compartir Tablero</h5>
+                    <h5 class="modal-title">Compartir</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body d-flex justify-content-center align-items-center"></div>
+
+                <div class="modal-body">
+                    <p class="text-muted mb-3">
+                        Generé dos QR: uno para <strong>Jefes</strong> (con botón de agrupadas) y otro para <strong>Jugadores</strong> (revela al tocar).
+                    </p>
+
+                    <div class="mb-3">
+                        <div class="font-weight-bold mb-2">🧠 QR Jefes</div>
+                        <div class="d-flex justify-content-center">
+                            <img src="${chiefsQR}" alt="QR Jefes" />
+                        </div>
+                    </div>
+
+                    <hr class="my-3" />
+
+                    <div>
+                        <div class="font-weight-bold mb-2">🎯 QR Jugadores</div>
+                        <div class="d-flex justify-content-center">
+                            <img src="${playQR}" alt="QR Jugadores" />
+                        </div>
+                    </div>
+
+                    <hr class="my-3" />
+                    <small class="text-muted d-block">
+                        Nota: las cartas <strong>neutrales</strong> quedan iguales. La carta <strong>marrón</strong> se revela como <code>brown.png</code>.
+                    </small>
+                </div>
             </div>
         </div>
     `;
-
-    qrModal.querySelector(".modal-body").appendChild(qrImage);
 
     document.body.appendChild(qrModal);
     $(qrModal).modal("show");
@@ -219,7 +386,12 @@ function generateQRCode() {
     });
 }
 
-// ✅ Modal Jefes: agrupa por color y muestra la imagen original
+/**
+ * =========================
+ * ✅ MODAL JEFES: agrupa por color y muestra la imagen original
+ * (En tu juego, brown es asesino; black lo ignoramos/lo dejamos por compatibilidad)
+ * =========================
+ */
 function showGroupedCardsModal() {
     const allImages = document.querySelectorAll("#game-board img.img-thumbnail");
 
@@ -227,7 +399,7 @@ function showGroupedCardsModal() {
         red: [],
         blue: [],
         brown: [],
-        black: [],
+        black: [], // compat
     };
 
     allImages.forEach((img) => {
@@ -298,6 +470,7 @@ function showGroupedCardsModal() {
         modal.remove();
     });
 }
+
 function showInstructionsModal() {
     const modal = document.createElement("div");
     modal.classList.add("modal", "fade");
@@ -346,16 +519,15 @@ function showInstructionsModal() {
 
                     <ol class="pl-3 mb-3">
                         <li><strong>Armar equipos:</strong> 2 equipos y en cada uno un <strong>Jefe</strong>.</li>
-                        <li><strong>Host:</strong> marca las cartas del tablero con colores (solo él ve esa info).</li>
+                        <li><strong>Host:</strong> marca las cartas del tablero con colores.</li>
                         <li><strong>Turno del Jefe:</strong> da una pista como <em>“Círculo 2”</em> (una palabra + número).</li>
                         <li><strong>Equipo adivina:</strong> toca cartas que coincidan con la pista (de a una).</li>
-                        <li><strong>Si acierta</strong>, puede seguir adivinando hasta el número (opcional +1 si querés regla estilo Codenames).</li>
-                        <li><strong>Si falla</strong> (carta que no era), termina el turno.</li>
+                        <li>Las cartas <strong>neutrales</strong> no cambian.</li>
+                        <li>La carta <strong>marrón</strong> es el “asesino” (se revela con <code>brown.png</code>).</li>
                     </ol>
 
                     <div class="instructions-tip">
-                        <strong>Tip:</strong> El botón de <strong>Jefes</strong> muestra agrupadas las cartas marcadas
-                        (rojo/azul/marrón/negro) para ayudar a planear pistas.
+                        <strong>Tip:</strong> Desde el QR de <strong>Jefes</strong> vas a poder ver las cartas agrupadas por color para planear pistas.
                     </div>
 
                     <hr class="my-3" />
@@ -363,8 +535,7 @@ function showInstructionsModal() {
                     <p class="mb-1"><strong>Recomendación:</strong></p>
                     <ul class="pl-3 mb-0">
                         <li>Jugá en <strong>horizontal</strong> para ver las 4 filas.</li>
-                        <li>Usá el botón <strong>QR</strong> para que todos abran el mismo tablero.</li>
-                        <li>Si querés “asesino” tipo Código Secreto: definí el color <strong>negro</strong> como pérdida instantánea.</li>
+                        <li>Usá el botón <strong>QR</strong> para compartir el tablero.</li>
                     </ul>
                 </div>
             </div>
@@ -378,9 +549,10 @@ function showInstructionsModal() {
         modal.remove();
     });
 }
+
 // ✅ PWA: registrar service worker (solo en https o localhost)
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(console.error);
-  });
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(console.error);
+    });
 }
