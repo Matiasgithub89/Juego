@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const numRows = 4;
     const numCols = 5;
-    const numImages = 55; // total de imágenes disponibles
+    const numImages = 55; // total de imágenes disponibles (1..55)
     const imagesFolder = "./imagenes/";
 
     const gameBoard = document.getElementById("game-board");
@@ -24,7 +24,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const row = document.createElement("tr");
 
         for (let j = 0; j < numCols; j++) {
-            const imageIndex = imageSequence[i * numCols + j] % numImages + 1;
+            // ✅ imageSequence ahora contiene valores 0..(numImages-1)
+            const imageIndexZeroBased = imageSequence[i * numCols + j];
+            const imageIndex = imageIndexZeroBased + 1; // pasa a 1..55
+
             const imagePath = `${imagesFolder}${imageIndex}.png`;
 
             const imageElement = document.createElement("img");
@@ -100,16 +103,24 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+/**
+ * ✅ Genera una secuencia de 20 cartas SIN repetirse, tomadas de 55.
+ * Devuelve índices 0..(maxImages-1) (ej: 0..54)
+ */
 function createRandomImageSequence(rows, cols, maxImages) {
     const totalCells = rows * cols;
-    const sequence = Array.from({ length: totalCells }, (_, index) => index);
 
-    for (let i = sequence.length - 1; i > 0; i--) {
+    // mazo completo 0..54
+    const deck = Array.from({ length: maxImages }, (_, i) => i);
+
+    // Fisher–Yates shuffle
+    for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [sequence[i], sequence[j]] = [sequence[j], sequence[i]];
+        [deck[i], deck[j]] = [deck[j], deck[i]];
     }
 
-    return sequence.slice(0, totalCells);
+    // tomamos las primeras 20
+    return deck.slice(0, totalCells);
 }
 
 function getImageSequenceFromURL() {
@@ -123,7 +134,8 @@ function getImageSequenceFromURL() {
         if (sequence) {
             const sequenceArray = sequence.split(",");
             if (sequenceArray.length === 20) {
-                return sequenceArray.map(Number);
+                // OJO: acá llegan números 0..54 (nuevo formato)
+                return sequenceArray.map((v) => Number(v));
             }
         }
     }
