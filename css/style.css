@@ -68,20 +68,36 @@ body {
         --rows: 4;
         --cols: 5;
 
-        /* gaps chicos para que entren */
-        --gap: 2px;
+        /* gaps mínimos para que entren */
+        --gap: 1px;
 
-        /* reservamos espacio por barras del navegador y “aire” */
-        --ui-reserve: 44px;
+        /*
+          Reserva conservadora:
+          En Android/Chrome landscape la UI (barra url + navegación) suele “comer” más.
+          Subimos esto para garantizar que no corte la 4ta fila.
+        */
+        --ui-reserve: 84px;
 
-        /* usamos dvh para mobile moderno */
-        --vh: 100dvh;
+        /*
+          ✅ Usamos svh: Small Viewport Height
+          Es el alto MÍNIMO garantizado, ideal para “que siempre entre”.
+          Si el navegador no lo soporta, cae al siguiente (dvh/vh).
+        */
+        --vh: 100svh;
+
+        /* fallback por si algún browser no soporta svh */
+        @supports not (height: 100svh) {
+            --vh: 100dvh;
+        }
+        @supports not (height: 100dvh) {
+            --vh: 100vh;
+        }
 
         /* alto útil = pantalla - reserva */
         --usable-h: calc(var(--vh) - var(--ui-reserve));
 
         /* ancho útil (le sacamos un poquito por seguridad) */
-        --usable-w: calc(100vw - 12px);
+        --usable-w: calc(100vw - 10px);
 
         /* tamaño por altura: (alto útil - gaps) / 4 filas */
         --size-by-h: calc((var(--usable-h) - (var(--gap) * var(--rows) * 2)) / var(--rows));
@@ -93,25 +109,41 @@ body {
         --card-size: min(var(--size-by-h), var(--size-by-w));
     }
 
-    /* si aparece scroll vertical, algo está sobrando: preferimos que no scrollee */
+    /* si aparece scroll vertical, algo está sobrando */
     body {
         overflow: hidden;
     }
 
-    /* cartas: cuadradas sin recorte */
+    /* En landscape ganamos píxeles:
+       Bootstrap .table puede meter bordes/líneas/paddings */
+    .table {
+        margin-bottom: 0 !important;
+    }
+
+    .table td,
+    .table th {
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    /* cartas: cuadradas sin recorte y más compactas */
     .table img.img-thumbnail {
         width: var(--card-size);
-        height: auto;               /* ✅ NO forzamos altura */
-        aspect-ratio: 1 / 1;        /* ✅ igualamos alto/ancho visual */
-        object-fit: contain;        /* ✅ NUNCA recorta, solo “encaja” */
+        height: auto;               /* NO forzamos altura */
+        aspect-ratio: 1 / 1;        /* cuadrado visual */
+        object-fit: contain;        /* NUNCA recorta */
         background: #fff;
 
         margin: var(--gap);
         border-radius: 8px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+
+        /* reducimos “decoración” para no robar aire */
+        box-shadow: none;
+        border: 1px solid rgba(0,0,0,0.08);
+        transition: none;
     }
 
-    /* Botones flotantes: arriba y más chicos (para no tapar tablero ni robar altura) */
+    /* Botones flotantes: arriba y más chicos */
     #floating-button {
         top: 8px;
         right: 8px;
@@ -121,12 +153,12 @@ body {
     }
 
     .floating-action {
-        padding: 10px;
+        padding: 9px;
     }
 
     .floating-action img {
-        width: 28px;
-        height: 28px;
+        width: 26px;
+        height: 26px;
     }
 }
 
