@@ -310,3 +310,10 @@ body {
     font-size: 0.95rem;
     line-height: 1.3rem;
 }
+/* El tablero ocupa todo el alto disponible */
+#game-board {
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
