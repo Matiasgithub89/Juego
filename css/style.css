@@ -8,15 +8,19 @@ html, body {
 
 body {
     margin: 0;
-    /* En landscape no queremos padding-bottom grande porque nos roba altura.
-       Lo ajustamos con media queries más abajo. */
-    padding-bottom: 0;
+    padding: 0; /* en landscape cada px importa */
 }
 
-/* Bootstrap container más compacto */
+/* achicamos el padding del container */
 .container {
-    padding-left: 6px !important;
-    padding-right: 6px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+}
+
+/* bootstrap .row mete márgenes negativos: en mobile landscape suele molestar */
+.row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
 
 /* =========================
@@ -34,7 +38,7 @@ body {
     padding: 0;
 }
 
-/* Estado general (portrait / desktop): se ve bien sin garantizar 4 filas */
+/* Estado general (fuera de landscape): se ve bien */
 .table img.img-thumbnail {
     width: clamp(52px, 16vw, 140px);
     height: auto;
@@ -56,68 +60,61 @@ body {
 
 /* =========================================================
    ✅ MODO JUEGO: LANDSCAPE
-   Objetivo: que entren SIEMPRE 4 filas visibles
+   Objetivo: que entren SIEMPRE 4 filas y 5 columnas
+   Sin recortar imágenes
    ========================================================= */
-
-/*
-  Nota: usamos 100dvh para mobile moderno (alto real visible).
-  Si algún navegador no soporta dvh, cae a vh.
-*/
 @media (orientation: landscape) {
-    :root {
+    :root{
         --rows: 4;
         --cols: 5;
 
-        /* Espacios que sí o sí existen y hay que descontar */
-        --top-safe: 8px;
-        --bottom-safe: 8px;
+        /* gaps chicos para que entren */
+        --gap: 2px;
 
-        /* Margen entre cartas (afecta altura total) */
-        --gap: 4px;
+        /* reservamos espacio por barras del navegador y “aire” */
+        --ui-reserve: 44px;
 
-        /* Reservamos un espacio para UI (botones / aire). */
-        --ui-reserve: 56px;
-
-        /* Alto útil */
+        /* usamos dvh para mobile moderno */
         --vh: 100dvh;
-        --usable-h: calc(var(--vh) - var(--top-safe) - var(--bottom-safe) - var(--ui-reserve));
 
-        /* Ancho útil (un poco de padding lateral) */
+        /* alto útil = pantalla - reserva */
+        --usable-h: calc(var(--vh) - var(--ui-reserve));
+
+        /* ancho útil (le sacamos un poquito por seguridad) */
         --usable-w: calc(100vw - 12px);
 
-        /* Tamaño por altura: (alto útil - gaps) / 4 filas */
-        --size-by-h: calc((var(--usable-h) - (var(--gap) * (var(--rows) * 2))) / var(--rows));
+        /* tamaño por altura: (alto útil - gaps) / 4 filas */
+        --size-by-h: calc((var(--usable-h) - (var(--gap) * var(--rows) * 2)) / var(--rows));
 
-        /* Tamaño por ancho: (ancho útil - gaps) / 5 columnas */
-        --size-by-w: calc((var(--usable-w) - (var(--gap) * (var(--cols) * 2))) / var(--cols));
+        /* tamaño por ancho: (ancho útil - gaps) / 5 columnas */
+        --size-by-w: calc((var(--usable-w) - (var(--gap) * var(--cols) * 2)) / var(--cols));
 
-        /* Tamaño final: el más chico de ambos */
+        /* el menor de los dos garantiza que entra en ambos ejes */
         --card-size: min(var(--size-by-h), var(--size-by-w));
     }
 
-    /* Hacemos que el tablero use bien el alto y no meta scroll vertical */
+    /* si aparece scroll vertical, algo está sobrando: preferimos que no scrollee */
     body {
-        overflow: hidden;   /* clave: si no entra, queremos que se achique, no que scrollee */
+        overflow: hidden;
     }
 
-    .container {
-        padding-top: var(--top-safe) !important;
-        padding-bottom: var(--bottom-safe) !important;
-    }
-
-    /* Cartas: tamaño garantizado por cálculo */
+    /* cartas: cuadradas sin recorte */
     .table img.img-thumbnail {
         width: var(--card-size);
-        height: var(--card-size);   /* fuerza cuadrado */
-        object-fit: cover;          /* si tus PNG son cuadrados, no afecta; si no, queda prolijo */
+        height: auto;               /* ✅ NO forzamos altura */
+        aspect-ratio: 1 / 1;        /* ✅ igualamos alto/ancho visual */
+        object-fit: contain;        /* ✅ NUNCA recorta, solo “encaja” */
+        background: #fff;
+
         margin: var(--gap);
         border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.10);
     }
 
-    /* Botones flotantes: en landscape los subimos para no tapar la grilla */
+    /* Botones flotantes: arriba y más chicos (para no tapar tablero ni robar altura) */
     #floating-button {
-        top: 10px;
-        right: 10px;
+        top: 8px;
+        right: 8px;
         bottom: auto;
 
         gap: 8px;
@@ -128,8 +125,8 @@ body {
     }
 
     .floating-action img {
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
     }
 }
 
