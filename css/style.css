@@ -1,13 +1,28 @@
 /* =========================
    TABLERO RESPONSIVE (TABLA)
+   OBJETIVO: QUE ENTREN SIEMPRE 4 FILAS
    ========================= */
 
-/* Hacemos que la tabla no meta padding/bordes raros */
+html, body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    padding-bottom: 110px; /* espacio para botones flotantes */
+}
+
+/* Contenedor bootstrap más compacto */
+.container {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+}
+
+/* Tabla base */
 .table {
     border: none;
     margin: 0 auto;
-    width: auto;          /* evita estirarse raro */
-    table-layout: fixed;  /* celdas parejas */
+    table-layout: fixed;
     border-collapse: collapse;
 }
 
@@ -15,48 +30,60 @@
     padding: 0;
 }
 
-/* Tamaño fluido de cartas:
-   - En mobile se achica solo
-   - En desktop se mantiene agradable */
+/*
+  CLAVE:
+  - 4 filas → cada carta no puede ocupar más de ~22vh
+  - min(): prioriza altura
+  - max(): evita que sea microscópica
+*/
 .table img.img-thumbnail {
-    width: clamp(52px, 16vw, 140px); /* MIN / FLUIDO / MAX */
+    width: min(
+        18vw,
+        22vh
+    );
+    max-width: 140px;
+    min-width: 48px;
+
     height: auto;
     display: block;
 
-    margin: clamp(2px, 1vw, 6px);
+    margin: 2px auto;
     padding: 0;
-    border-radius: 10px;
 
-    /* Saca el borde pesado del thumbnail de bootstrap */
+    border-radius: 10px;
     border: 1px solid rgba(0,0,0,0.10);
     background: #fff;
 
-    /* sensación más "app" */
     box-shadow: 0 1px 3px rgba(0,0,0,0.10);
     transition: transform 0.08s ease;
 }
 
 /* Feedback táctil */
 .table img.img-thumbnail:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
 
-/* Ajuste fino para pantallas MUY chicas */
-@media (max-width: 420px) {
+/* Teléfonos muy chicos */
+@media (max-height: 640px) {
     .table img.img-thumbnail {
-        width: clamp(46px, 18vw, 92px);
+        width: min(20vw, 20vh);
+        max-width: 110px;
         border-radius: 8px;
     }
 }
 
-/* Evita que el contenedor de bootstrap meta paddings molestos en mobile */
-.container {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
+/* Teléfonos ultra chicos (320px de alto usable) */
+@media (max-height: 560px) {
+    .table img.img-thumbnail {
+        width: min(22vw, 18vh);
+        max-width: 96px;
+    }
 }
 
+/* =========================
+   SELECTOR DE COLORES
+   ========================= */
 
-/* Selector de colores */
 .color-options {
     display: flex;
     flex-wrap: wrap;
@@ -86,41 +113,47 @@
     color: #444;
 }
 
-/* Botones flotantes (QR + Jefes) */
+/* =========================
+   BOTONES FLOTANTES
+   ========================= */
+
 #floating-button {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 12px;
+    right: 12px;
     z-index: 1000;
 
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .floating-action {
     display: block;
     background-color: #007BFF;
     border-radius: 50%;
-    padding: 15px;
+    padding: 12px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
     text-align: center;
 }
 
 .floating-action img {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
 }
 
-/* Ajuste modal general */
+/* =========================
+   MODALES
+   ========================= */
+
 .modal-content {
-    max-width: 420px;
+    max-width: min(92vw, 420px);
     margin: 0 auto;
 }
 
 /* Modal de jefes */
 .chiefs-modal-content {
-    max-width: 420px;
+    max-width: min(92vw, 420px);
 }
 
 .chief-section {
@@ -145,6 +178,12 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
+}
+
+@media (max-width: 420px) {
+    .chief-cards-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .chief-card {
